@@ -28,10 +28,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               child: Text('Cancel')
           ),
           ElevatedButton(
-              onPressed: (){
+              onPressed: ()async{
                _categoryItem.name = _categoriesNameController.text;
                _categoryItem.description = _categoriesDescriptionController.text;
-               _categoryService.saveCategory(_categoryItem);
+
+               var result = await _categoryService.saveCategory(_categoryItem);
+               print(result);
               },
               child: Text('Save')
           )
