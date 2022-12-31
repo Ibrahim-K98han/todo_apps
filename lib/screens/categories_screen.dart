@@ -12,9 +12,11 @@ class CategoriesScreen extends StatefulWidget {
 
 class _CategoriesScreenState extends State<CategoriesScreen> {
   TextEditingController _categoriesNameController = TextEditingController();
-  TextEditingController _categoriesDescriptionController = TextEditingController();
+  TextEditingController _categoriesDescriptionController =
+      TextEditingController();
   TextEditingController _editCategoriesNameController = TextEditingController();
-  TextEditingController _editCategoriesDescriptionController = TextEditingController();
+  TextEditingController _editCategoriesDescriptionController =
+      TextEditingController();
 
   CategoryItem _categoryItem = CategoryItem();
   CategoryService _categoryService = CategoryService();
@@ -22,15 +24,17 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   var category;
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     getAllCategories();
   }
 
-  getAllCategories()async{
+  final GlobalKey<ScaffoldState> _globalKey = GlobalKey<ScaffoldState>();
+
+  getAllCategories() async {
     _categoryList = <CategoryItem>[];
     var categories = await _categoryService.readCategories();
-    categories.forEach((category){
+    categories.forEach((category) {
       setState(() {
         var categoryModel = CategoryItem();
         categoryModel.name = category['name'];
@@ -41,137 +45,182 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     });
   }
 
-  _editCategory(BuildContext context, categoryId)async{
+  _editCategory(BuildContext context, categoryId) async {
     category = await _categoryService.readCategoryById(categoryId);
     setState(() {
-      _editCategoriesNameController.text = category[0]['name']?? 'No Name';
-      _editCategoriesDescriptionController.text = category[0]['description'] ?? 'No Description';
+      _editCategoriesNameController.text = category[0]['name'] ?? 'No Name';
+      _editCategoriesDescriptionController.text =
+          category[0]['description'] ?? 'No Description';
     });
     _editFormDialog(context);
   }
 
-  _showFormDialog(BuildContext context){
-    return showDialog(context: context,barrierDismissible: true, builder: (param){
-      return AlertDialog(
-        actions: [
-          ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red
-              ),
-              onPressed: ()=>Navigator.pop(context),
-              child: Text('Cancel')
-          ),
-          ElevatedButton(
-              onPressed: ()async{
-               _categoryItem.name = _categoriesNameController.text;
-               _categoryItem.description = _categoriesDescriptionController.text;
+  _showFormDialog(BuildContext context) {
+    return showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (param) {
+          return AlertDialog(
+            actions: [
+              ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Cancel')),
+              ElevatedButton(
+                  onPressed: () async {
+                    _categoryItem.name = _categoriesNameController.text;
+                    _categoryItem.description =
+                        _categoriesDescriptionController.text;
 
-               var result = await _categoryService.saveCategory(_categoryItem);
-               print(result);
-              },
-              child: Text('Save')
-          )
-        ],
-        title: Text('Categories Form'),
-        content: SingleChildScrollView(
-          child: Column(
-            children: [
-              TextField(
-                controller: _categoriesNameController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey)
+                    var result =
+                        await _categoryService.saveCategory(_categoryItem);
+                    if(result>0){
+                      Navigator.pop(context);
+                      getAllCategories();
+                    }
+                  },
+                  child: Text('Save'))
+            ],
+            title: Text('Categories Form'),
+            content: SingleChildScrollView(
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _categoriesNameController,
+                    decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey)),
+                        hintText: 'Write a category',
+                        labelText: 'Category'),
                   ),
-                  hintText: 'Write a category',
-                  labelText: 'Category'
-                ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  TextField(
+                    controller: _categoriesDescriptionController,
+                    decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey)),
+                        hintText: 'Write a description',
+                        labelText: 'Description'),
+                  ),
+                ],
               ),
-              SizedBox(height: 10,),
-              TextField(
-                controller: _categoriesDescriptionController,
-                decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.grey)
-                    ),
-                    hintText: 'Write a description',
-                    labelText: 'Description'
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    });
+            ),
+          );
+        });
   }
 
-  _editFormDialog(BuildContext context){
-    return showDialog(context: context,barrierDismissible: true, builder: (param){
-      return AlertDialog(
-        actions: [
-          ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red
-              ),
-              onPressed: ()=>Navigator.pop(context),
-              child: Text('Cancel')
-          ),
-          ElevatedButton(
-              onPressed: ()async{
-                _categoryItem.name = _categoriesNameController.text;
-                _categoryItem.description = _categoriesDescriptionController.text;
+  _editFormDialog(BuildContext context) {
+    return showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (param) {
+          return AlertDialog(
+            actions: [
+              ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Cancel')),
+              ElevatedButton(
+                  onPressed: () async {
+                    _categoryItem.id = category[0]['id'];
+                    _categoryItem.name = _editCategoriesNameController.text;
+                    _categoryItem.description =
+                        _editCategoriesDescriptionController.text;
 
-                var result = await _categoryService.saveCategory(_categoryItem);
-                print(result);
-              },
-              child: Text('Update')
-          )
-        ],
-        title: Text('Edit Categories Form'),
-        content: SingleChildScrollView(
-          child: Column(
-            children: [
-              TextField(
-                controller: _editCategoriesNameController,
-                decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.grey)
-                    ),
-                    hintText: 'Write a category',
-                    labelText: 'Category'
-                ),
-              ),
-              SizedBox(height: 10,),
-              TextField(
-                controller: _editCategoriesDescriptionController,
-                decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.grey)
-                    ),
-                    hintText: 'Write a description',
-                    labelText: 'Description'
-                ),
-              ),
+                    var result =
+                        await _categoryService.updateCategory(_categoryItem);
+                    if (result > 0) {
+                      Navigator.pop(context);
+                      getAllCategories();
+                      //_showSuccessSnackBar(Text('Update'));
+                    }
+                  },
+                  child: Text('Update'))
             ],
-          ),
-        ),
-      );
-    });
+            title: Text('Edit Categories Form'),
+            content: SingleChildScrollView(
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _editCategoriesNameController,
+                    decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey)),
+                        hintText: 'Write a category',
+                        labelText: 'Category'),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  TextField(
+                    controller: _editCategoriesDescriptionController,
+                    decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey)),
+                        hintText: 'Write a description',
+                        labelText: 'Description'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
   }
+
+  _deleteFormDialog(BuildContext context, categoryId) {
+    return showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (param) {
+          return AlertDialog(
+            actions: [
+              ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Cancel')),
+              ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  onPressed: () async {
+                    var result =
+                    await _categoryService.deleteCategory(categoryId);
+                    if (result > 0) {
+                      Navigator.pop(context);
+                      getAllCategories();
+                      //_showSuccessSnackBar(Text('Update'));
+                    }
+                  },
+                  child: Text('Delete'))
+            ],
+            title: Text('Are you sure you want to delete this?'),
+          );
+        });
+  }
+
+  // void _showSuccessSnackBar(message) {
+  //   var _snackBar = SnackBar(content: message);
+  //   _globalKey.currentState!.showBottomSheet((context) => _snackBar);
+  // }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _globalKey,
       appBar: AppBar(
         leading: ElevatedButton(
           onPressed: () => Navigator.of(context)
               .push(MaterialPageRoute(builder: (context) => HomeScreen())),
-          child: Icon(Icons.arrow_back,color: Colors.white,),
+          child: Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+          ),
         ),
         title: Text('Categories'),
       ),
       body: ListView.builder(
         itemCount: _categoryList.length,
-        itemBuilder: (context, index){
+        itemBuilder: (context, index) {
           return Padding(
             padding: EdgeInsets.only(top: 8, left: 8, right: 8),
             child: Card(
@@ -179,7 +228,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               child: ListTile(
                 leading: IconButton(
                   icon: Icon(Icons.edit),
-                  onPressed: (){
+                  onPressed: () {
                     _editCategory(context, _categoryList[index].id);
                   },
                 ),
@@ -188,12 +237,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   children: [
                     Text(_categoryList[index].name.toString()),
                     IconButton(
-                        onPressed: (){},
+                        onPressed: () {
+                          _deleteFormDialog(context, _categoryList[index].id);
+                        },
                         icon: Icon(
                           Icons.delete,
                           color: Colors.red,
-                        )
-                    )
+                        ))
                   ],
                 ),
               ),
